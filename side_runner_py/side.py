@@ -17,9 +17,9 @@ class SIDEProjectManager:
         # store test-project across test-project
         self.projects = {}
 
-    def add_project(self, side_filename, param_filename):
+    def add_project(self, side_project, param_filename):
         # load .side file
-        test_project, test_suites, tests = self._parse_side(side_filename)
+        test_project, test_suites, tests = self._parse_side(side_project)
 
         # store to manager attributes
         self.tests.update(tests)
@@ -54,11 +54,10 @@ class SIDEProjectManager:
             logger.error(exc.msg)
             return test_project['project'], [], []
 
-    def _parse_side(self, filename):
+    def _parse_side(self, test_project):
         # parse json
-        test_project = {}
-        with open(filename, 'r') as f:
-            test_project = _try_to_load(f)
+        # with open(filename, 'r') as f:
+        #     test_project = _try_to_load(f)
 
         # load test suites
         test_suites = test_project['suites']

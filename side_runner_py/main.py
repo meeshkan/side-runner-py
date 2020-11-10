@@ -252,14 +252,17 @@ def main():
     # load and evaluate config, env, defaults
     Config.init()
 
+    Config.WEBDRIVER_URL = "https://meeshkan.com"
+
     # pre-load all tests
     side_manager = SIDEProjectManager()
-    loaded_projects = []
-    for test_file_pattern in Config.TEST_FILE:
-        loaded_projects.extend([
-            (side_manager.add_project(side_filename, param_filename), side_filename, param_filename)
-            for side_filename, param_filename in _get_side_file_list_by_glob(test_file_pattern)
-        ])
+    fname = "./check_repos.side"
+    with open(fname) as f:
+        project = json.load(f)
+    #for test_file_pattern in Config.TEST_FILE:
+    loaded_projects = [
+            (side_manager.add_project(project, None), "a", None)
+        ]
 
     # execute test projects
     session_manager = SessionManager()
