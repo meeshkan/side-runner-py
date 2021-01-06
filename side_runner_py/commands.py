@@ -19,7 +19,17 @@ def execute_open(driver, store, test_project, test_suite, test_dict):
     # get url
     # FIXME: url try order impl (environment -> ttest[open].target -> test_suite.url -> test_project.url)
     base_url = test_project.get('url')
-    driver.get(base_url + test_dict['target'])
+    driver.get(base_url)
+    driver.add_cookie({"name": "token", "value": "2Fmzf3Jy7qAXcxhAsjvhcih2bovmiAQgYSeymIEW8kyVT19fTC9tY1qCV9uDgABpTZ",
+                    "domain": "",  # google chrome
+                    "expires": "",
+                    'httpOnly': False,
+                    'HostOnly': False,
+                    'Secure': False
+                    })
+    driver.get(base_url)
+
+    #driver.get(base_url + test_dict['target'])
 
 
 def execute_set_window_size(driver, store, test_project, test_suite, test_dict):

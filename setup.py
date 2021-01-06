@@ -26,6 +26,8 @@ setup(
         'emoji',
         'dpath',
         'stingconf==0.0.3',
+        'six',
+        'certifi'
     ],
     setup_requires=[
         'pytest-runner'
