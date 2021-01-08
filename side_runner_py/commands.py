@@ -14,26 +14,48 @@ from .exceptions import AssertionFailure, VerificationFailure
 from .log import getLogger
 logger = getLogger(__name__)
 
+def parse_cookes(cookies):
+    res = []
+    for cookie in cookies.split(";"):
+        name, value = cookie.split("=")
+        res.append({"name": name.strip(), "value": value.strip()})
+
+    return res
+
+def add_cookes(driver, cookies):
+    if cookies is not None:
+        cookies = parse_cookes(cookies)
+        cookie_names = {cookie["name"] for cookie in cookies}
+        old_cookies = driver.get_cookies()
+        for cookie in old_cookies:
+            if cookie["name"] in cookie_names:
+                driver.delete_cookie(cookie["name"])
+
+        for cookie in cookies:
+            driver.add_cookie(cookie)
 
 def execute_open(driver, store, test_project, test_suite, test_dict):
     # get url
     # FIXME: url try order impl (environment -> ttest[open].target -> test_suite.url -> test_project.url)
     base_url = test_project.get('url')
     driver.get(base_url)
-    driver.add_cookie({"name": "token", "value": "2Fmzf3Jy7qAXcxhAsjvhcih2bovmiAQgYSeymIEW8kyVT19fTC9tY1qCV9uDgABpTZ",
-                    "domain": "",  # google chrome
-                    "expires": "",
-                    'httpOnly': False,
-                    'HostOnly': False,
-                    'Secure': False
-                    })
+    add_cookes(driver, test_project.get("cookies"))
+    #driver.add_cookie({"name": "user_id", "value": "111796339919137618571"})
     driver.get(base_url)
 
     #driver.get(base_url + test_dict['target'])
 
-
 def execute_set_window_size(driver, store, test_project, test_suite, test_dict):
     w, h = test_dict['target'].split('x')
+    driver.set_window_size(w, h)
+
+def execute_set_viewport_size(driver, store, test_project, test_suite, test_dict):
+    w, h = test_dict['target'].split('x')
+
+    w, h = driver.execute_script("""
+        return [window.outerWidth - window.innerWidth + arguments[0],
+          window.outerHeight - window.innerHeight + arguments[1]];
+        """, w, h)
     driver.set_window_size(w, h)
 
 
@@ -266,6 +288,7 @@ def execute_store_value(driver, store, test_project, test_suite, test_dict):
 TEST_HANDLER_MAP = {
     'open': execute_open,
     'setWindowSize': execute_set_window_size,
+    'setViewportSize': execute_set_viewport_size,
     'executeScript': execute_execute_script,
     'runScript': execute_run_script,
     'click': execute_click,

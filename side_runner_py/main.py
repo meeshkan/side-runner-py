@@ -57,7 +57,7 @@ def execute_test_command(session_manager, test_project, test_suite, test_dict):
     except AssertionFailure as exc:
         logger.warning(exc.format_msg())
         return _format_test_command_output(test_dict, True, False, exc.format_msg(), 'assert')
-    except Exception:
+    except Exception as e:
         traceback_msg = traceback.format_exc()
         logger.warning(traceback_msg)
         return _format_test_command_output(test_dict, True, False, traceback_msg, 'unknown')
