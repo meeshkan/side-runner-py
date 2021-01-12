@@ -188,14 +188,17 @@ def execute_dragndrop(driver, store, test_project, test_suite, test_dict):
     move_x = test_dict["dest_coordinates"][0] - test_dict["source_coordinates"][0]
     move_y = test_dict["dest_coordinates"][1] - test_dict["source_coordinates"][1]
 
-    #action_chain.move_by_offset(test_dict["source_coordinates"][0], test_dict["source_coordinates"][1])
+    # action_chain.move_by_offset(test_dict["source_coordinates"][0], test_dict["source_coordinates"][1])
+    # action_chain.pause(2)
 
     action_chain.move_to_element(element)#test_dict["source_coordinates"][0], test_dict["source_coordinates"][1])\
     action_chain.click_and_hold()
+    action_chain.pause(1)
+
     action_chain.move_by_offset(move_x, move_y)
-    action_chain.pause(2)
+    action_chain.pause(1)
     action_chain.release()
-    action_chain.pause(2)
+    action_chain.pause(1)
     #action_chain.drag_and_drop_by_offset(element, move_x, move_y)
     action_chain.perform()
 
