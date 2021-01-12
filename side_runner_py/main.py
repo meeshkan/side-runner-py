@@ -198,6 +198,7 @@ class SessionManager():
 
 
 def _execute_test_command(session_manager, test_project, test_suite, test, idx, test_command, output, outdir):
+    print(test_command)
     logger.debug('Using session {}'.format(session_manager.driver))
 
     # log test-command
@@ -229,6 +230,7 @@ def _execute_side_file(session_manager, side_manager, project_id):
                 for test_id in gen_tests():
                     with session_manager._tests_session(test_project, test_suite, tests, test_id) as gen_test_command:
                         for idx, test_command in gen_test_command():
+                            print(f"Executing test command {test_command}")
                             _execute_test_command(session_manager,
                                                   test_project, test_suite, tests[test_id],
                                                   idx, test_command, output, outdir)
