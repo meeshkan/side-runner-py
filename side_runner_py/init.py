@@ -3,7 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 from .config import Config
 from .utils import maybe_bool, construct_dict
-
+import chromedriver_binary
 
 def initialize(driver_url):
     if len(Config.DESIRED_CAPABILITIES) == 0:
@@ -53,7 +53,9 @@ def initialize(driver_url):
     chrome_options.add_argument('--single-process')
     chrome_options.add_argument('--ignore-certificate-errors')
 
-    chrome_options.binary_location = "/tmp/bin/headless-chromium"        # options.add_experimental_option('prefs', {'intl.accept_languages': 'ja_JP'})
-    driver = webdriver.Chrome("/tmp/bin/chromedriver", chrome_options=chrome_options)
+    #chrome_options.binary_location = "/tmp/bin/headless-chromium"
+    driver = webdriver.Chrome()#"/tmp/bin/chromedriver", chrome_options=chrome_options)
+    # options.add_experimental_option('prefs', {'intl.accept_languages': 'ja_JP'})
+    #driver = webdriver.Chrome("/tmp/bin/chromedriver", chrome_options=chrome_options)
 
     return driver
