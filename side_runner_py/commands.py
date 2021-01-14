@@ -80,18 +80,20 @@ def execute_run_script(driver, store, test_project, test_suite, test_dict):
 # By.CLASS_NAME         By.ID                 By.NAME               By.TAG_NAME           By.mro(
 # By.CSS_SELECTOR       By.LINK_TEXT          By.PARTIAL_LINK_TEXT  By.XPATH
 def _get_element_selector_tuple(target_text):
+    return (By.CSS_SELECTOR, target_text)
+
     # FIXME: impl other selector
-    text = target_text.split('=', 1)[1]
-    if target_text.startswith('id='):
-        return (By.ID, text)
-    if target_text.startswith('xpath='):
-        return (By.XPATH, text)
-    if target_text.startswith('linkText='):
-        return (By.LINK_TEXT, text)
-    if target_text.startswith('css='):
-        return (By.CSS_SELECTOR, text)
-    if target_text.startswith('name='):
-        return (By.NAME, text)
+    # text = target_text.split('=', 1)[1]
+    # if target_text.startswith('id='):
+    #     return (By.ID, text)
+    # if target_text.startswith('xpath='):
+    #     return (By.XPATH, text)
+    # if target_text.startswith('linkText='):
+    #     return (By.LINK_TEXT, text)
+    # if target_text.startswith('css='):
+    #     return (By.CSS_SELECTOR, text)
+    # if target_text.startswith('name='):
+    #     return (By.NAME, text)
 
 
 def _wait_element(driver, target_text):
@@ -184,6 +186,12 @@ def execute_mouse_up_at(driver, store, test_project, test_suite, test_dict):
 def execute_dragndrop(driver, store, test_project, test_suite, test_dict):
     action_chain = ActionChains(driver)
     element = _wait_element(driver, test_dict['source_target'])
+    location = element.location
+
+    print("LOCATION {}".format(location))
+
+    offset_x = test_dict["source_coordinates"][0] - element.location["x"]
+    offset_y = test_dict["source_coordinates"][1] - element.location["y"]
 
     move_x = test_dict["dest_coordinates"][0] - test_dict["source_coordinates"][0]
     move_y = test_dict["dest_coordinates"][1] - test_dict["source_coordinates"][1]
@@ -191,7 +199,7 @@ def execute_dragndrop(driver, store, test_project, test_suite, test_dict):
     # action_chain.move_by_offset(test_dict["source_coordinates"][0], test_dict["source_coordinates"][1])
     # action_chain.pause(2)
 
-    action_chain.move_to_element(element)#test_dict["source_coordinates"][0], test_dict["source_coordinates"][1])\
+    action_chain.move_to_element_with_offset(element, offset_x, offset_y)#test_dict["source_coordinates"][0], test_dict["source_coordinates"][1])\
     action_chain.click_and_hold()
     action_chain.pause(1)
 

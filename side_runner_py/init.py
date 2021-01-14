@@ -7,9 +7,21 @@ from .utils import maybe_bool, construct_dict
 
 def initialize(driver_url):
     if len(Config.DESIRED_CAPABILITIES) == 0:
-        options = webdriver.ChromeOptions()
-        # options.add_experimental_option('prefs', {'intl.accept_languages': 'ja_JP'})
-        cap = options.to_capabilities()
+        chrome_options = webdriver.ChromeOptions()
+
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--window-size=1280x1696')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--hide-scrollbars')
+        chrome_options.add_argument('--enable-logging')
+        chrome_options.add_argument('--log-level=0')
+        chrome_options.add_argument('--v=99')
+        chrome_options.add_argument('--single-process')
+        chrome_options.add_argument('--ignore-certificate-errors')
+
+        chrome_options.binary_location = "/tmp/bin/headless-chromium"        # options.add_experimental_option('prefs', {'intl.accept_languages': 'ja_JP'})
+        cap = chrome_options.to_capabilities()
     else:
         cap = {}
         for k, v in [cap.split("=") for cap in Config.DESIRED_CAPABILITIES]:
@@ -28,7 +40,20 @@ def initialize(driver_url):
     # driver = webdriver.Remote(
     #     command_executor=driver_url,
     #     desired_capabilities=cap)
+    chrome_options = webdriver.ChromeOptions()
 
-    driver = webdriver.Chrome(desired_capabilities=cap)
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument('--window-size=1280x1696')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--hide-scrollbars')
+    chrome_options.add_argument('--enable-logging')
+    chrome_options.add_argument('--log-level=0')
+    chrome_options.add_argument('--v=99')
+    chrome_options.add_argument('--single-process')
+    chrome_options.add_argument('--ignore-certificate-errors')
+
+    chrome_options.binary_location = "/tmp/bin/headless-chromium"        # options.add_experimental_option('prefs', {'intl.accept_languages': 'ja_JP'})
+    driver = webdriver.Chrome("/tmp/bin/chromedriver", chrome_options=chrome_options)
 
     return driver

@@ -205,7 +205,7 @@ def _execute_test_command(session_manager, test_project, test_suite, test, idx, 
     test_path_str = '{}.{}.{}.{}'.format(test_suite['name'], test['name'], idx, test_command['command'])
     logger.info('TEST: {} to {} with {}'.format(test_path_str, test_command['target'], test_command['value']))
 
-    get_screenshot(session_manager.driver, test_suite['name'], test['name'], idx, test_command, outdir)
+    #get_screenshot(session_manager.driver, test_suite['name'], test['name'], idx, test_command, outdir)
 
     # execute test command
     with hook_context('command', session_manager, test_project, test_suite, test, test_command, idx):
@@ -214,7 +214,7 @@ def _execute_test_command(session_manager, test_project, test_suite, test, idx, 
         time.sleep(float(Config.DRIVER_COMMAND_WAIT) / 1000)
 
     if command_output['is_failed']:
-        get_screenshot(session_manager.driver, test_suite['name'], test['name'], idx, test_command, outdir)
+        #get_screenshot(session_manager.driver, test_suite['name'], test['name'], idx, test_command, outdir)
         if command_output['failed_type'] == 'assert':
             raise AssertionFailure()
         else:
