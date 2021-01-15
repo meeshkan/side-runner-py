@@ -1,29 +1,69 @@
-import time
 import re
-from .config import Config
-from selenium.webdriver.common.by import By
+import time
+
+from selenium.common.exceptions import NoAlertPresentException, ElementNotVisibleException, NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.alert import Alert
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoAlertPresentException, ElementNotVisibleException, NoSuchElementException
-from .utils import split_with_re
+
+from .config import Config
 from .exceptions import AssertionFailure, VerificationFailure
 from .log import getLogger
+from .utils import split_with_re
+
 logger = getLogger(__name__)
+
+
+def parse_cookes(cookies):
+    res = []
+    for cookie in cookies.split(";"):
+        name, value = cookie.split("=")
+        res.append({"name": name.strip(), "value": value.strip()})
+
+    return res
+
+
+def add_cookes(driver, cookies):
+    if cookies is not None:
+        cookies = parse_cookes(cookies)
+        cookie_names = {cookie["name"] for cookie in cookies}
+        old_cookies = driver.get_cookies()
+        for cookie in old_cookies:
+            if cookie["name"] in cookie_names:
+                driver.delete_cookie(cookie["name"])
+
+        for cookie in cookies:
+            driver.add_cookie(cookie)
 
 
 def execute_open(driver, store, test_project, test_suite, test_dict):
     # get url
     # FIXME: url try order impl (environment -> ttest[open].target -> test_suite.url -> test_project.url)
     base_url = test_project.get('url')
-    driver.get(base_url + test_dict['target'])
+    driver.get(base_url)
+    add_cookes(driver, test_project.get("cookies"))
+    # driver.add_cookie({"name": "user_id", "value": "111796339919137618571"})
+    driver.get(base_url)
+
+    # driver.get(base_url + test_dict['target'])
 
 
 def execute_set_window_size(driver, store, test_project, test_suite, test_dict):
     w, h = test_dict['target'].split('x')
+    driver.set_window_size(w, h)
+
+
+def execute_set_viewport_size(driver, store, test_project, test_suite, test_dict):
+    w, h = test_dict['target'].split('x')
+
+    w, h = driver.execute_script("""
+        return [window.outerWidth - window.innerWidth + arguments[0],
+          window.outerHeight - window.innerHeight + arguments[1]];
+        """, w, h)
     driver.set_window_size(w, h)
 
 
@@ -40,18 +80,20 @@ def execute_run_script(driver, store, test_project, test_suite, test_dict):
 # By.CLASS_NAME         By.ID                 By.NAME               By.TAG_NAME           By.mro(
 # By.CSS_SELECTOR       By.LINK_TEXT          By.PARTIAL_LINK_TEXT  By.XPATH
 def _get_element_selector_tuple(target_text):
+    return (By.CSS_SELECTOR, target_text)
+
     # FIXME: impl other selector
-    text = target_text.split('=', 1)[1]
-    if target_text.startswith('id='):
-        return (By.ID, text)
-    if target_text.startswith('xpath='):
-        return (By.XPATH, text)
-    if target_text.startswith('linkText='):
-        return (By.LINK_TEXT, text)
-    if target_text.startswith('css='):
-        return (By.CSS_SELECTOR, text)
-    if target_text.startswith('name='):
-        return (By.NAME, text)
+    # text = target_text.split('=', 1)[1]
+    # if target_text.startswith('id='):
+    #     return (By.ID, text)
+    # if target_text.startswith('xpath='):
+    #     return (By.XPATH, text)
+    # if target_text.startswith('linkText='):
+    #     return (By.LINK_TEXT, text)
+    # if target_text.startswith('css='):
+    #     return (By.CSS_SELECTOR, text)
+    # if target_text.startswith('name='):
+    #     return (By.NAME, text)
 
 
 def _wait_element(driver, target_text):
@@ -130,6 +172,46 @@ def execute_send_keys(driver, store, test_project, test_suite, test_dict):
 
 
 def execute_mouse_over(driver, store, test_project, test_suite, test_dict):
+    pass
+
+
+def execute_mouse_down_at(driver, store, test_project, test_suite, test_dict):
+    pass
+
+
+def execute_mouse_up_at(driver, store, test_project, test_suite, test_dict):
+    pass
+
+
+def execute_dragndrop(driver, store, test_project, test_suite, test_dict):
+    action_chain = ActionChains(driver)
+    element = _wait_element(driver, test_dict['source_target'])
+    location = element.location
+
+    print("LOCATION {}".format(location))
+
+    offset_x = test_dict["source_coordinates"][0] - element.location["x"]
+    offset_y = test_dict["source_coordinates"][1] - element.location["y"]
+
+    move_x = test_dict["dest_coordinates"][0] - test_dict["source_coordinates"][0]
+    move_y = test_dict["dest_coordinates"][1] - test_dict["source_coordinates"][1]
+
+    # action_chain.move_by_offset(test_dict["source_coordinates"][0], test_dict["source_coordinates"][1])
+    # action_chain.pause(2)
+
+    action_chain.move_to_element_with_offset(element, offset_x, offset_y)#test_dict["source_coordinates"][0], test_dict["source_coordinates"][1])\
+    action_chain.click_and_hold()
+    action_chain.pause(1)
+
+    action_chain.move_by_offset(move_x, move_y)
+    action_chain.pause(1)
+    action_chain.release()
+    action_chain.pause(1)
+    #action_chain.drag_and_drop_by_offset(element, move_x, move_y)
+    action_chain.perform()
+
+
+def execute_mouse_move_at(driver, store, test_project, test_suite, test_dict):
     element = _wait_element(driver, test_dict['target'])
     ActionChains(driver).move_to_element(element).perform()
 
@@ -148,28 +230,28 @@ def execute_select(driver, store, test_project, test_suite, test_dict):
 def execute_wait_for_element_present(driver, store, test_project, test_suite, test_dict):
     selector = _get_element_selector_tuple(test_dict['target'])
     timeout_ms = int(test_dict['value'])
-    WebDriverWait(driver, timeout_ms / 1000, 1, (NoSuchElementException))\
+    WebDriverWait(driver, timeout_ms / 1000, 1, (NoSuchElementException)) \
         .until(lambda x: x.find_element(*selector))
 
 
 def execute_wait_for_element_visible(driver, store, test_project, test_suite, test_dict):
     selector = _get_element_selector_tuple(test_dict['target'])
     timeout_ms = int(test_dict['value'])
-    WebDriverWait(driver, timeout_ms / 1000, 1, (ElementNotVisibleException, NoSuchElementException))\
+    WebDriverWait(driver, timeout_ms / 1000, 1, (ElementNotVisibleException, NoSuchElementException)) \
         .until(lambda x: x.find_element(*selector).is_displayed())
 
 
 def execute_wait_for_element_not_present(driver, store, test_project, test_suite, test_dict):
     selector = _get_element_selector_tuple(test_dict['target'])
     timeout_ms = int(test_dict['value'])
-    WebDriverWait(driver, timeout_ms / 1000, 1, (NoSuchElementException))\
+    WebDriverWait(driver, timeout_ms / 1000, 1, (NoSuchElementException)) \
         .until_not(lambda x: x.find_element(*selector))
 
 
 def execute_wait_for_element_not_visible(driver, store, test_project, test_suite, test_dict):
     selector = _get_element_selector_tuple(test_dict['target'])
     timeout_ms = int(test_dict['value'])
-    WebDriverWait(driver, timeout_ms / 1000, 1, (ElementNotVisibleException, NoSuchElementException))\
+    WebDriverWait(driver, timeout_ms / 1000, 1, (ElementNotVisibleException, NoSuchElementException)) \
         .until_not(lambda x: x.find_element(*selector).is_displayed())
 
 
@@ -256,6 +338,7 @@ def execute_store_value(driver, store, test_project, test_suite, test_dict):
 TEST_HANDLER_MAP = {
     'open': execute_open,
     'setWindowSize': execute_set_window_size,
+    'setViewportSize': execute_set_viewport_size,
     'executeScript': execute_execute_script,
     'runScript': execute_run_script,
     'click': execute_click,
@@ -268,9 +351,10 @@ TEST_HANDLER_MAP = {
     'verifyText': execute_verify_text,
     'mouseOver': execute_mouse_over,
     'select': execute_select,
-    'mouseDownAt': lambda _1, _2, _3, _4, _5: None,
-    'mouseUpAt': lambda _1, _2, _3, _4, _5: None,
-    'mouseMoveAt': lambda _1, _2, _3, _4, _5: None,
+    'mouseDownAt': execute_mouse_down_at,  # lambda _1, _2, _3, _4, _5: None,
+    'mouseUpAt': execute_mouse_move_at,  # lambda _1, _2, _3, _4, _5: None,
+    'mouseMoveAt': execute_mouse_up_at,  # lambda _1, _2, _3, _4, _5: None,
+    'dragndrop': execute_dragndrop,
     'chooseOkOnNextConfirmation': lambda _1, _2, _3, _4, _5: None,
     'chooseCancelOnNextConfirmation': lambda _1, _2, _3, _4, _5: None,
     'waitForElementPresent': execute_wait_for_element_present,

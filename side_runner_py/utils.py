@@ -1,4 +1,5 @@
 import time
+import traceback
 from traceback import format_exc
 from inspect import signature, Parameter
 from .log import getLogger
@@ -10,7 +11,7 @@ def with_retry(retry, wait, func, *args):
         try:
             return func(*args)
         except Exception as exc:
-            logger.info(exc)
+            print(traceback.format_exc())
         finally:
             time.sleep(wait)
 

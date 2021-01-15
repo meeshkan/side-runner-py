@@ -155,9 +155,9 @@ class SessionManager():
                 yield _
         except AssertionFailure:
             pass
-        except Exception:
-            traceback_msg = traceback.format_exc()
-            logger.warning(traceback_msg)
+        # except Exception:
+        #     traceback_msg = traceback.format_exc()
+        #     logger.warning(traceback_msg)
         finally:
             logger.debug('Leave test-suite {}'.format(test_suite['id']))
 
@@ -182,13 +182,15 @@ class SessionManager():
             logger.debug('Enter tests {}'.format(test_id))
             with hook_context('test', self, test_project, test_suite, tests[test_id]):
                 yield _
-        except Exception as exc:
-            if not test_suite.get('persistSession', False):
-                self._reset_variable_store()
-                self._close_driver_or_skip()
-                return
-            raise exc
+        #except Exception as exc:
+            # if not test_suite.get('persistSession', False):
+            #     self._reset_variable_store()
+            #     self._close_driver_or_skip()
+           #     return
+            #raise exc
         finally:
+            self._reset_variable_store()
+            self._close_driver_or_skip()
             logger.debug('Leave tests {}'.format(test_id))
 
         # reset variable store and close driver if test_suite require session close
@@ -196,6 +198,11 @@ class SessionManager():
             self._reset_variable_store()
             self._close_driver_or_skip()
 
+class TestCaseException(Exception):
+    def __init__(self, command_output, test_step):
+        super(TestCaseException, self).__init__(command_output)
+        self.command_output = command_output
+        self.test_step = test_step
 
 def _execute_test_command(session_manager, test_project, test_suite, test, idx, test_command, output, outdir):
     logger.debug('Using session {}'.format(session_manager.driver))
@@ -204,20 +211,19 @@ def _execute_test_command(session_manager, test_project, test_suite, test, idx, 
     test_path_str = '{}.{}.{}.{}'.format(test_suite['name'], test['name'], idx, test_command['command'])
     logger.info('TEST: {} to {} with {}'.format(test_path_str, test_command['target'], test_command['value']))
 
-    get_screenshot(session_manager.driver, test_suite['name'], test['name'], idx, test_command, outdir)
+    #get_screenshot(session_manager.driver, test_suite['name'], test['name'], idx, test_command, outdir)
 
     # execute test command
     with hook_context('command', session_manager, test_project, test_suite, test, test_command, idx):
         command_output = execute_test_command(session_manager, test_project, test_suite, test_command)
-        _store_test_command_output(output, test_suite, test, command_output)
+        #_store_test_command_output(output, test_suite, test, command_output)
         time.sleep(float(Config.DRIVER_COMMAND_WAIT) / 1000)
-
     if command_output['is_failed']:
-        get_screenshot(session_manager.driver, test_suite['name'], test['name'], idx, test_command, outdir)
+        #get_screenshot(session_manager.driver, test_suite['name'], test['name'], idx, test_command, outdir)
         if command_output['failed_type'] == 'assert':
             raise AssertionFailure()
         else:
-            raise Exception(command_output)
+            raise TestCaseException(command_output, idx)
 
 
 def _execute_side_file(session_manager, side_manager, project_id):
