@@ -24,10 +24,11 @@ from .log import getLogger
 logger = getLogger(__name__)
 
 
-def get_screenshot(driver, test_suite_name, test_case_name, cmd_index, test_dict, outdir):
+def get_screenshot(driver, cmd_index):
     try:
-        filename = "_".join([test_suite_name, test_case_name, "{0:02d}".format(cmd_index), test_dict['id']]) + ".png"
-        driver.get_screenshot_as_file(os.path.join(outdir, filename))
+        if Config.SCREENSHOT_DIR is not None:
+            filename = f"{cmd_index}.png"
+            driver.get_screenshot_as_file(os.path.join(Config.SCREENSHOT_DIR, filename))
     except UnexpectedAlertPresentException:
         logger.warning("Unable to get Screenshot due to alert present")
     except Exception:
@@ -218,6 +219,9 @@ def _execute_test_command(session_manager, test_project, test_suite, test, idx, 
         command_output = execute_test_command(session_manager, test_project, test_suite, test_command)
         #_store_test_command_output(output, test_suite, test, command_output)
         time.sleep(float(Config.DRIVER_COMMAND_WAIT) / 1000)
+
+    get_screenshot(session_manager.driver, idx)
+
     if command_output['is_failed']:
         #get_screenshot(session_manager.driver, test_suite['name'], test['name'], idx, test_command, outdir)
         if command_output['failed_type'] == 'assert':

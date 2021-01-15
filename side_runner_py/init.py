@@ -42,11 +42,12 @@ def initialize(driver_url):
     #     desired_capabilities=cap)
     chrome_options = webdriver.ChromeOptions()
 
-    chrome_options.add_argument('--headless')
+    if Config.HEADLESS:
+        chrome_options.add_argument('--headless')
     chrome_options.add_argument('--disable-gpu')
     chrome_options.add_argument('--window-size=1280x1696')
-    chrome_options.add_argument('--no-sandbox')
-    #chrome_options.add_argument('--hide-scrollbars')
+    chrome_options.add_argument('--no-sandboFalsex')
+    chrome_options.add_argument('--hide-scrollbars')
     chrome_options.add_argument('--enable-logging')
     chrome_options.add_argument('--log-level=0')
     chrome_options.add_argument('--v=99')
