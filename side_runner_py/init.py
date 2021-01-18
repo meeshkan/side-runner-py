@@ -46,7 +46,7 @@ def initialize(driver_url):
         chrome_options.add_argument('--headless')
     chrome_options.add_argument('--disable-gpu')
     chrome_options.add_argument('--window-size=1280x1696')
-    chrome_options.add_argument('--no-sandboFalsex')
+    chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--hide-scrollbars')
     chrome_options.add_argument('--enable-logging')
     chrome_options.add_argument('--log-level=0')
