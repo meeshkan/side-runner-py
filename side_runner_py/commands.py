@@ -81,7 +81,7 @@ def execute_run_script(driver, store, test_project, test_suite, test_dict):
 # By.CSS_SELECTOR       By.LINK_TEXT          By.PARTIAL_LINK_TEXT  By.XPATH
 def _get_element_selector_tuple(target_text):
     #return (By.CSS_SELECTOR, target_text)
-    return (By.XPATH, target_text["target_xpath"])
+    return (By.XPATH, target_text["xpath"])
     # FIXME: impl other selector
     # text = target_text.split('=', 1)[1]
     # if target_text.startswith('id='):
